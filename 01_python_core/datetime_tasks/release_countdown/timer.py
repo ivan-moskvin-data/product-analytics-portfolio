@@ -1,38 +1,58 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
-def cp(amount, declensions): 
-  suf2 = ["0"] + [str(i) for i in range(5, 20)]
-  n = str(amount)
-  if n[-2:] in suf2 or n[-1] in suf2:
-    return f"{amount} {declensions[2]}"
-  elif n[-1] == "1":
-    return f"{amount} {declensions[0]}"
-  else:
-    return f"{amount} {declensions[1]}"
+DAY_DECLENSIONS = ("день", "дня", "дней")
+HOUR_DECLENSIONS = ("час", "часа", "часов")
+MINUTE_DECLENSIONS = ("минута", "минуты", "минут")
+RELEASE_DATE = datetime(year=2022, month=11, day=8, hour=12)
+DATE_FORMAT = "%d.%m.%Y %H:%M"
 
-dtup = ("день", "дня", "дней")
-htup = ("час", "часа", "часов")
-mtup = ("минута", "минуты", "минут")
+def get_plural_form(amount, declensions):
+    amount = abs(amount)
+    remainder_10 = amount % 10
+    remainder_100 = amount % 100
 
-pat = "%d.%m.%Y %H:%M"
-d = datetime.strptime(input(), pat)
-
-kurse = datetime(year=2022, month=11, day=8, hour=12)
-
-if d >= kurse:
-  print("Игра уже вышла!")
-else:
-    timer = kurse - d
-    l = [timer.days, int(timer.seconds // 3600), int(timer.seconds % 3600 // 60)]
-    if l[0] != 0:
-        if l[1] != 0:
-            print(f"До выхода игры осталось: {cp(l[0], dtup)} и {cp(l[1], htup)}")
-        else:
-            print(f"До выхода игры осталось: {cp(l[0], dtup)}")
+    if 11 <= remainder_100 <= 19:
+        word = declensions[2]
+    elif remainder_10 == 1:
+        word = declensions[0]
+    elif 2 <= remainder_10 <= 4:
+        word = declensions[1]
     else:
-        if l[1] != 0 and l[2] != 0:
-            print(f"До выхода игры осталось: {cp(l[1], htup)} и {cp(l[2], mtup)}")
-        elif l[2] == 0:
-            print(f"До выхода игры осталось: {cp(l[1], htup)}")
-        else:
-            print(f"До выхода игры осталось: {cp(l[2], mtup)}")
+        word = declensions[2]
+        
+    return f"{amount} {word}"
+
+def format_time_remaining(current_date, release_date):
+    if current_date >= release_date:
+        return "Игра уже вышла!"
+
+    timer = release_date - current_date
+    days = timer.days
+    hours = timer.seconds // 3600
+    minutes = (timer.seconds % 3600) // 60
+
+    parts = []
+    if days > 0:
+        parts.append(get_plural_form(days, DAY_DECLENSIONS))
+    if hours > 0:
+        parts.append(get_plural_form(hours, HOUR_DECLENSIONS))
+    if days == 0 and minutes > 0:
+        parts.append(get_plural_form(minutes, MINUTE_DECLENSIONS))
+
+    if len(parts) > 1:
+        return f"До выхода игры осталось: {parts[0]} и {parts[1]}"
+    elif len(parts) == 1:
+        return f"До выхода игры осталось: {parts[0]}"
+    
+    return "Игра выходит прямо сейчас!"
+
+def main():
+    user_input = input(f"Введите дату ({DATE_FORMAT}): ")
+    try:
+        current_date = datetime.strptime(user_input, DATE_FORMAT)
+        print(format_time_remaining(current_date, RELEASE_DATE))
+    except ValueError:
+        print(f"Ошибка: Неверный формат.")
+
+if __name__ == "__main__":
+    main()
