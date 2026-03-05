@@ -13,7 +13,10 @@ def get_unique_headers(filename: str) -> List[str]:
         reader = csv.reader(f)
         for row in reader:
             if len(row) == 3:
-                # Название свойства находится во втором столбце
+                # Извлекаем имя атрибута (вторая колонка в EAV). 
+                # Используем словарь 'columns_seen' как OrderedSet: 
+                # это гарантирует уникальность заголовков и сохраняет их 
+                # изначальный порядок для итоговой таблицы (O(1) lookup).
                 attr_name = row[1]
                 if attr_name not in columns_seen:
                     columns_seen[attr_name] = None
